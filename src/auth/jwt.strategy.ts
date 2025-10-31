@@ -13,17 +13,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false, // ❌ No permitir tokens expirados
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'default_secret', // ✅ Evita que sea undefined
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'default_secret',
     });
   }
 
- async validate(payload: any) {
+  async validate(payload: any) {
+    // ✅ payload.sub contiene el id del usuario
     const usuario = await this.usuariosService.obtenerPorId(payload.sub);
 
     if (!usuario) {
       throw new UnauthorizedException('Token inválido o usuario no encontrado');
     }
 
+    // ✅ Lo que retornes aquí se adjunta automáticamente a req.user
     return {
       id: usuario.id,
       correo: usuario.correo,
@@ -32,5 +34,4 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       apellidoMaterno: usuario.apellidoMaterno,
     };
   }
-
 }

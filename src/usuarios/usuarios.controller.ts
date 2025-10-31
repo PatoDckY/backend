@@ -20,21 +20,4 @@ export class UsuariosController {
   async obtenerPorId(@Param('id') id: number) {
     return this.usuariosService.obtenerPorId(id);
   }
-
-  @Post('login')
-  async login(@Body() body: { correo: string; contrasena: string }) {
-    const usuario = await this.usuariosService.obtenerPorCorreo(body.correo);
-    if (!usuario) throw new UnauthorizedException('Correo o contraseña incorrectos');
-
-    const contrasenaValida = await this.usuariosService.verificarContrasena(
-      body.contrasena,
-      usuario.contrasena,
-    );
-
-    if (!contrasenaValida)
-      throw new UnauthorizedException('Correo o contraseña incorrectos');
-
-    // Podrías generar un token JWT aquí, pero por ahora devolvemos el usuario
-    return { mensaje: 'Login exitoso', usuario };
-  }
 }
