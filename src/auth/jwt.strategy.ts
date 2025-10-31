@@ -17,15 +17,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    // payload viene del token creado en AuthService.login()
-    const usuario = await this.usuariosService.obtenerPorId(payload.id);
+ async validate(payload: any) {
+    const usuario = await this.usuariosService.obtenerPorId(payload.sub);
 
     if (!usuario) {
       throw new UnauthorizedException('Token inválido o usuario no encontrado');
     }
 
-    // ✅ Lo que retornes aquí se adjunta automáticamente a req.user
     return {
       id: usuario.id,
       correo: usuario.correo,
@@ -34,4 +32,5 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       apellidoMaterno: usuario.apellidoMaterno,
     };
   }
+
 }
