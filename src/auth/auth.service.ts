@@ -21,11 +21,12 @@ export class AuthService {
   }
 
   async login(usuario: any) {
-    const payload = { id: usuario.id, correo: usuario.correo };
+    const payload = { sub: usuario.id, correo: usuario.correo, nombre: usuario.nombre };
     return {
-      mensaje: 'Login exitoso',
+      mensaje: 'Inicio de sesión exitoso',
       token: this.jwtService.sign(payload),
       usuario,
     };
   }
+
 }

@@ -1,0 +1,37 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
+import { UsuariosService } from '../usuarios/usuarios.service';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usuariosService: UsuariosService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false, // ❌ No permitir tokens expirados
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'default_secret', // ✅ Evita que sea undefined
+    });
+  }
+
+  async validate(payload: any) {
+    // payload viene del token creado en AuthService.login()
+    const usuario = await this.usuariosService.obtenerPorId(payload.id);
+
+    if (!usuario) {
+      throw new UnauthorizedException('Token inválido o usuario no encontrado');
+    }
+
+    // ✅ Lo que retornes aquí se adjunta automáticamente a req.user
+    return {
+      id: usuario.id,
+      correo: usuario.correo,
+      nombre: usuario.nombre,
+      apellidoPaterno: usuario.apellidoPaterno,
+      apellidoMaterno: usuario.apellidoMaterno,
+    };
+  }
+}
