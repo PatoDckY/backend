@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private transporter;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -13,9 +13,18 @@ export class EmailService {
         pass: process.env.EMAIL_PASS,
       },
     });
+
+    // 🔍 Verifica que la conexión al servicio de correo esté activa
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ Error verificando conexión con Gmail:', error);
+      } else {
+        console.log('✅ Servidor de correo listo para enviar mensajes');
+      }
+    });
   }
 
-  async enviarCorreo(destinatario: string, asunto: string, html: string) {
+  async enviarCorreo(destinatario: string, asunto: string, html: string): Promise<void> {
     try {
       const info = await this.transporter.sendMail({
         from: `"Tu App 👶" <${process.env.EMAIL_USER}>`,
@@ -24,11 +33,10 @@ export class EmailService {
         html,
       });
 
-      console.log('Correo enviado: ', info.messageId);
-      return true;
+      console.log(`📩 Correo enviado correctamente a ${destinatario}. ID: ${info.messageId}`);
     } catch (error) {
-      console.error('Error al enviar correo:', error);
-      return false;
+      console.error('❌ Error al enviar correo:', error);
+      throw new InternalServerErrorException('No se pudo enviar el correo');
     }
   }
 }

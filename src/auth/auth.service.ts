@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -10,10 +10,11 @@ export class AuthService {
   private magicLinks = new Map<string, string>(); // token temporal => correo
 
   constructor(
-    private usuariosService: UsuariosService,
-    private jwtService: JwtService
+    private readonly usuariosService: UsuariosService,
+    private readonly jwtService: JwtService
   ) {}
 
+  // 🔹 Validar login normal
   async validarUsuario(correo: string, contrasena: string) {
     const usuario = await this.usuariosService.obtenerPorCorreo(correo);
     if (!usuario) throw new UnauthorizedException('Correo o contraseña incorrectos');
@@ -24,6 +25,7 @@ export class AuthService {
     return usuario;
   }
 
+  // 🔹 Generar token JWT
   async login(usuario: any) {
     const payload = { sub: usuario.id, correo: usuario.correo, nombre: usuario.nombre };
     return {
@@ -41,40 +43,46 @@ export class AuthService {
     const token = uuidv4();
     this.magicLinks.set(token, correo);
 
-    // Enlace que el usuario recibirá
-    const magicUrl = `${process.env.FRONTEND_URL}/auth/magic-login?token=${token}`;
+    // Construcción del enlace (Render + frontend)
+    const magicUrl = `${process.env.FRONTEND_URL}/magic-login?token=${token}`;
+    console.log('📩 Enviando enlace mágico a:', correo, '→', magicUrl);
 
-    // Configurar Nodemailer
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    try {
+      // Configuración de nodemailer
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
-    // Enviar correo
-    await transporter.sendMail({
-      from: `"Soporte" <${process.env.EMAIL_USER}>`,
-      to: correo,
-      subject: 'Tu enlace mágico para iniciar sesión',
-      html: `
-        <div style="font-family: Arial, sans-serif; text-align: center;">
-          <h2>Hola ${usuario.nombre} 👋</h2>
-          <p>Haz clic en el siguiente botón para iniciar sesión sin contraseña:</p>
-          <a href="${magicUrl}" 
-            style="background-color:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">
-            Iniciar sesión
-          </a>
-          <p>Este enlace expirará en 10 minutos.</p>
-        </div>
-      `,
-    });
+      // Enviar correo
+      await transporter.sendMail({
+        from: `"Soporte 👶" <${process.env.EMAIL_USER}>`,
+        to: correo,
+        subject: 'Tu enlace mágico para iniciar sesión ✨',
+        html: `
+          <div style="font-family: Arial, sans-serif; text-align: center;">
+            <h2>Hola ${usuario.nombre} 👋</h2>
+            <p>Haz clic en el siguiente botón para iniciar sesión sin contraseña:</p>
+            <a href="${magicUrl}" 
+              style="background-color:#6c63ff; color:white; padding:10px 20px; text-decoration:none; border-radius:8px;">
+              Iniciar sesión
+            </a>
+            <p>Este enlace expirará en 10 minutos.</p>
+          </div>
+        `,
+      });
 
-    // El token expira en 10 minutos
-    setTimeout(() => this.magicLinks.delete(token), 10 * 60 * 1000);
+      // Expiración automática
+      setTimeout(() => this.magicLinks.delete(token), 10 * 60 * 1000);
 
-    return { mensaje: 'Enlace mágico enviado a tu correo' };
+      return { mensaje: '✅ Enlace mágico enviado. Revisa tu correo.' };
+    } catch (error) {
+      console.error('❌ Error al enviar correo mágico:', error);
+      throw new InternalServerErrorException('No se pudo enviar el enlace mágico.');
+    }
   }
 
   // 🔐 Validar token del enlace mágico
