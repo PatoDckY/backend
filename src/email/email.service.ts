@@ -1,42 +1,29 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    // 🔍 Verifica que la conexión al servicio de correo esté activa
-    this.transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ Error verificando conexión con Gmail:', error);
-      } else {
-        console.log('✅ Servidor de correo listo para enviar mensajes');
-      }
-    });
+    // Inicializa Resend con tu API key
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
-  async enviarCorreo(destinatario: string, asunto: string, html: string): Promise<void> {
+  async enviarCorreo(destinatario: string, asunto: string, html: string) {
     try {
-      const info = await this.transporter.sendMail({
-        from: `"Tu App 👶" <${process.env.EMAIL_USER}>`,
+      const data = await this.resend.emails.send({
+        from: 'Tu App <no-reply@resend.dev>', // puedes usar tu propio dominio verificado
         to: destinatario,
         subject: asunto,
         html,
       });
 
-      console.log(`📩 Correo enviado correctamente a ${destinatario}. ID: ${info.messageId}`);
+      console.log('✅ Correo enviado correctamente:', data);
+      return true;
     } catch (error) {
-      console.error('❌ Error al enviar correo:', error);
-      throw new InternalServerErrorException('No se pudo enviar el correo');
+      console.error('❌ Error al enviar correo con Resend:', error);
+      throw new InternalServerErrorException('Error al enviar correo');
     }
   }
 }
