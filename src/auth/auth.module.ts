@@ -4,7 +4,8 @@ import { AuthController } from './auth.controller';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt.strategy'; // 👈 importa la estrategia
+import { JwtStrategy } from './jwt.strategy';
+import { EmailService } from '../email/email.service'; // 👈 importa el servicio de correo
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { JwtStrategy } from './jwt.strategy'; // 👈 importa la estrategia
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy], // 👈 agrega aquí la estrategia
+  providers: [AuthService, JwtStrategy, EmailService], // 👈 agrega aquí el EmailService
   controllers: [AuthController],
 })
 export class AuthModule {}
