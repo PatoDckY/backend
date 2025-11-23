@@ -35,8 +35,12 @@ export class UsuariosService {
   }
 
   async obtenerPorId(id: number): Promise<Usuario | null> {
-    return this.usuarioRepository.findOneBy({ id });
+    return this.usuarioRepository.findOne({
+      where: { id },
+      relations: ['rol'],
+    });
   }
+
 
   // ✅ Método opcional: buscar por correo (útil para login)
   async obtenerPorCorreoConRol(correo: string): Promise<Usuario | null> {
