@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -22,5 +23,10 @@ export class AuthController {
   @Get('verify-magic')
   async verificarMagicToken(@Query('token') token: string) {
     return this.authService.validarEnlaceMagico(token);
+  }
+    @UseGuards(AuthGuard('jwt'))
+  @Get('perfil')
+  obtenerPerfil(@Req() req) {
+    return req.user;
   }
 }

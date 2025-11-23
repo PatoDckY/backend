@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BeforeInsert,
+  ManyToOne,
+  JoinColumn
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Rol } from '../roles/rol.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -30,10 +38,11 @@ export class Usuario {
   @Column()
   contrasena: string;
 
-  /**
-   * Antes de insertar el usuario en la BD, se ejecuta este método.
-   * Aquí encriptamos la contraseña.
-   */
+  // ⭐ Relación ManyToOne
+  @ManyToOne(() => Rol, (rol) => rol.usuarios)
+  @JoinColumn({ name: 'rol_id' })
+  rol: Rol;
+
   @BeforeInsert()
   async hashPassword() {
     const salt = await bcrypt.genSalt(10);

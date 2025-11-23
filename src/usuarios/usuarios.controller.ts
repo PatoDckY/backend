@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { Usuario } from './usuario.entity';
 
@@ -8,7 +8,16 @@ export class UsuariosController {
 
   @Post('registro')
   async crear(@Body() usuarioData: Partial<Usuario>) {
-    return this.usuariosService.crear(usuarioData);
+    try {
+      return await this.usuariosService.crear(usuarioData);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        // reenviar el error al frontend
+        throw error;
+      }
+      console.error('Error al crear usuario:', error);
+      throw new Error('Error inesperado al registrar usuario');
+    }
   }
 
   @Get()
