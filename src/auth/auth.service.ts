@@ -14,7 +14,7 @@ export class AuthService {
 
   // 🔹 Validar login normal
   async validarUsuario(correo: string, contrasena: string) {
-    const usuario = await this.usuariosService.obtenerPorCorreo(correo);
+    const usuario = await this.usuariosService.obtenerPorCorreoConRol(correo);
     if (!usuario) throw new UnauthorizedException('Correo o contraseña incorrectos');
 
     const passValido = await bcrypt.compare(contrasena, usuario.contrasena);
@@ -25,7 +25,7 @@ export class AuthService {
 
   // 🔹 Generar token JWT
   async login(usuario: any) {
-    const payload = { sub: usuario.id, correo: usuario.correo, nombre: usuario.nombre };
+    const payload = { sub: usuario.id, correo: usuario.correo, nombre: usuario.nombre,rol: usuario.rol.nombre  };
     return {
       mensaje: 'Inicio de sesión exitoso',
       token: this.jwtService.sign(payload),

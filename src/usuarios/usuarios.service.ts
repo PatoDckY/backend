@@ -18,7 +18,7 @@ export class UsuariosService {
       throw new Error('El campo correo es obligatorio');
     }
 
-    const existente = await this.obtenerPorCorreo(usuarioData.correo);
+    const existente = await this.obtenerPorCorreoConRol(usuarioData.correo);
     if (existente) {
       throw new ConflictException('El correo ya está registrado');
     }
@@ -39,9 +39,13 @@ export class UsuariosService {
   }
 
   // ✅ Método opcional: buscar por correo (útil para login)
-  async obtenerPorCorreo(correo: string): Promise<Usuario | null> {
-    return this.usuarioRepository.findOne({ where: { correo } });
+  async obtenerPorCorreoConRol(correo: string): Promise<Usuario | null> {
+    return this.usuarioRepository.findOne({
+      where: { correo },
+      relations: ["rol"],  // 👈 IMPORTANTE
+    });
   }
+
 
   // ✅ Método opcional: verificar contraseña
   async verificarContrasena(contrasena: string, hash: string): Promise<boolean> {
