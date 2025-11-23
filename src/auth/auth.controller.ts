@@ -13,18 +13,7 @@ export class AuthController {
     return this.authService.login(usuario);
   }
 
-  // 🔹 Enviar enlace mágico
-  @Post('magic-link')
-  async enviarMagicLink(@Body() body: { correo: string }) {
-    return this.authService.enviarEnlaceMagico(body.correo);
-  }
-
-  // 🔹 Verificar token del enlace mágico
-  @Get('verify-magic')
-  async verificarMagicToken(@Query('token') token: string) {
-    return this.authService.validarEnlaceMagico(token);
-  }
-    @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('perfil')
   obtenerPerfil(@Req() req) {
     return req.user;

@@ -5,7 +5,6 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
-import { EmailService } from '../email/email.service'; // 👈 importa el servicio de correo
 
 @Module({
   imports: [
@@ -20,7 +19,7 @@ import { EmailService } from '../email/email.service'; // 👈 importa el servic
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, EmailService], // 👈 agrega aquí el EmailService
+  providers: [AuthService, JwtStrategy], // 👈 agrega aquí el EmailService
   controllers: [AuthController],
 })
 export class AuthModule {}
