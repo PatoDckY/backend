@@ -7,14 +7,14 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), // ✅ Carga variables de entorno (.env)
+    ConfigModule.forRoot(), 
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [Usuario],
+      autoLoadEntities: true, // 👈 ESTA ES LA CLAVE
       synchronize: true,
       ssl: {
-        rejectUnauthorized: false, // ✅ Necesario para Render
+        rejectUnauthorized: false,
       },
     }),
     UsuariosModule,
